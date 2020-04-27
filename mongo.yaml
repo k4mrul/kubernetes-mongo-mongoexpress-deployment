@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret   #referencing secret name (in metadata)
+              key: mongo-root-username  #username from secret file
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: mongodb-secret  #referencing secret name (in metadata)
+              key: mongo-root-password  #password from secret file
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service #a random name
+spec:
+  selector:
+    app: mongodb  #to connect to pod through label. It must match with the above deployment's template label's app name
+  ports:
+    - protocol: TCP
+      port: 27017  #service port. can be different 
+      targetPort: 27017  #containerPort of deployment. It also must match with the above deployment's containers containerPort'
