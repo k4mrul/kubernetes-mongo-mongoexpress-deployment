@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqldb-deployment
+  labels:
+    app: mysqldb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysqldb
+  template:
+    metadata:
+      labels:
+        app: mysqldb
+    spec:
+      containers:
+      - name: mysqldb
+        image: mysql
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: wp-secret   #referencing secret name (in metadata)
+              key: mysql-passwd  #username from secret file
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysqldb-service #a random name
+spec:
+  selector:
+    app: mysqldb  #to connect to pod through label. It must match with the above deployment's template label's app name
+  ports:
+    - protocol: TCP
+      port: 8080  #service port. can be different 
+      targetPort: 8080  #containerPort of deployment. It also must match with the above deployment's containers containerPort'

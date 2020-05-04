@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wp-deployment
+  labels:
+    app: wp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wp
+  template:
+    metadata:
+      labels:
+        app: wp
+    spec:
+      containers:
+      - name: wp
+        image: wordpress
+        ports:
+        - containerPort: 80
+        env:
+        - name: WORDPRESS_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: wp-secret   #referencing secret name (in metadata)
+              key: wp-username  #username from secret file
+        - name: WORDPRESS_DB_PASSWORD
+          valueFrom: 
+            secretKeyRef:
+              name: wp-secret  #referencing secret name (in metadata)
+              key: wp-password  #password from secret file
+        - name: WORDPRESS_DB_HOST
+          valueFrom:
+            configMapKeyRef:  #referencing with our configmap
+            name: wp-configmap
+            key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: wp-service
+spec:
+    selector:
+    app: wp
+    type: LoadBalancer    #by adding type loadbalancer, we are making this service external. Though internal services do loadbalancing but by explicitly writing type, we are making this external service
+    ports:
+    - protocol: TCP
+        port: 80
+        targetPort: 80
+        nodePort: 30000  #also this port needs to be added for external service where external ip can listen to this port (must be betwtweeb 30000-32767)
