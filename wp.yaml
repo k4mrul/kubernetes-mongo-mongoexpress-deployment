@@ -33,13 +33,13 @@ spec:
         - name: WORDPRESS_DB_HOST
           valueFrom:
             configMapKeyRef:  #referencing with our configmap
-            name: wp-configmap
-            key: database_url
+              name: wp-configmap
+              key: database_url
 ---
 apiVersion: v1
 kind: Service
 metadata:
-    name: wp-service
+ name: wp-service
 spec:
  selector:
   app: wp
